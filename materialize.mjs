@@ -28,10 +28,22 @@ if (import.meta.main || process.argv[1]?.endsWith('materialize.mjs')) {
   );
   mkdirSync('dist', { recursive: true });
   writeFileSync('dist/index.html', content);
+  mkdirSync('dist/share', { recursive: true });
+  const sharePage = Buffer.isBuffer(content)
+    ? content.toString('utf8').replace(
+      /(<meta property="og:url" content=")(https:\/\/[^"]+\/)(">)/,
+      '$1$2share/$3',
+    )
+    : content;
+  writeFileSync('dist/share/index.html', sharePage);
   if (Buffer.isBuffer(content)) {
-    const image = decryptAsset(readFileSync(new URL('./og-image.enc', import.meta.url)), key);
-    writeFileSync('dist/og-image.png', image);
+    const image = decryptAsset(readFileSync(new URL('./og-cover.enc', import.meta.url)), key);
+    writeFileSync('dist/og-cover.jpg', image);
+    const legacyKey = Buffer.from(process.env.TRIP_GUIDE_LEGACY_KEY ?? '', 'base64');
+    const legacy = decryptAsset(readFileSync(new URL('./og-image.enc', import.meta.url)), legacyKey);
+    writeFileSync('dist/og-image.png', legacy);
   } else {
+    rmSync('dist/og-cover.jpg', { force: true });
     rmSync('dist/og-image.png', { force: true });
   }
 }
