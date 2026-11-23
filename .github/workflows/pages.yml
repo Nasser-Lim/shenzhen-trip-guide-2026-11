@@ -1,0 +1,45 @@
+name: Publish temporary trip guide
+
+on:
+  workflow_dispatch:
+    inputs:
+      close:
+        description: "Replace the guide with the expiry notice now"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "7,37 15 29 11 *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/configure-pages@v5
+      - name: Prepare the guide or expiry notice
+        run: node materialize.mjs
+        env:
+          TRIP_GUIDE_KEY: ${{ secrets.TRIP_GUIDE_KEY }}
+          PAGES_CLOSE: ${{ inputs.close }}
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+          retention-days: 1
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
