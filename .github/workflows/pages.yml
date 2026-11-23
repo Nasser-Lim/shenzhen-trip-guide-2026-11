@@ -33,7 +33,7 @@ jobs:
       - name: Prepare the guide or expiry notice
         run: node materialize.mjs
         env:
-          TRIP_GUIDE_KEY: ${{ secrets.TRIP_GUIDE_KEY }}
+          TRIP_GUIDE_KEY: ${{ secrets.TRIP_GUIDE_OG_KEY }}
           PAGES_CLOSE: ${{ inputs.close }}
       - uses: actions/upload-pages-artifact@v4
         with:
